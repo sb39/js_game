@@ -1,0 +1,165 @@
+<html lang="en">
+<meta charset="utf-8">
+<head>
+    <script>
+        var canvas;
+        var canvasContext;
+        //speed rendering elements
+        var ballX=50;
+        var ballY=50;
+        var ballspeedX = 10;
+        var ballspeedY = 10;
+        var player1Score = 0;
+        var player2Score = 0;
+        const WINNING_SCORE = 5;
+        var showingWinScreen = false;
+        
+        //for paddle construction 
+        var paddle1Y = 250;
+        var paddle2Y = 250;
+        const PADDLE_HEIGHT = 100;
+        const PADDLE_THICKNESS = 10;
+        
+       function calculateMousePos(evt){
+            var rect = canvas.getBoundingClientRect();
+            var root = document.documentElement;
+            var mouseX = evt.clientX - rect.left - root.scrollLeft;
+            var mouseY = evt.clientY - rect.top - root.scrollTop;
+            return{
+                x:mouseX,
+                y:mouseY
+                  };
+            }
+        
+         function computerMovement() {
+            var paddle2YCenter = paddle2Y + (PADDLE_HEIGHT/2);
+            if (paddle2YCenter < ballY-35)
+            {
+                paddle2Y += 9;
+            }
+            else if (paddle2YCenter > ballY+35)
+                {
+                    paddle2Y -= 9;
+                }
+        }
+        
+         function ballReset()
+        {
+            if (player1Score >= WINNING_SCORE || player2Score >=WINNING_SCORE)
+            {
+                player1Score = 0;
+                player2Score = 0;
+                showingWinScreen = true;
+            }
+            
+            
+            ballX = canvas.width/2;
+            ballY = canvas.height/2;
+            ballspeedX = -ballspeedX;
+        }
+        function ballReset2()
+        {
+            ballX = canvas.width/2;
+            ballY = canvas.width/2;
+            ballspeedX = -ballspeedX;
+        }
+        
+        window.onload = function() 
+        {
+            //calling the canvas here.
+            canvas = document.getElementById('gameCanvas');
+            canvasContext = canvas.getContext('2d');
+            var framesPerSecond = 30;   //framerates being added for smother transition
+            //creating interval for the motion of the element in the canvas 
+            setInterval(function(){moveEverything();drawEverything();},1000/framesPerSecond);
+            
+            //seting up an event listener
+           canvas.addEventListener('mousemove', function(evt){
+                var mousePos = calculateMousePos(evt);
+                paddle1Y = mousePos.y - (PADDLE_HEIGHT/2); 
+           });
+           
+        }
+        //creating the moving function
+        function moveEverything()
+        {
+            
+          
+            computerMovement();
+            // for X direction movement
+            ballX = ballX + ballspeedX; 
+            if(ballX>canvas.width)
+            {
+                if (ballY > paddle2Y && ballY < paddle2Y+PADDLE_HEIGHT)
+                {
+                    ballspeedX = -ballspeedX;
+                    
+                    var deltaY = ballY - (paddle2Y + PADDLE_HEIGHT/2);
+                    ballspeedY = deltaY * 0.35;
+                }
+               else{
+                   
+                 player1Score++;    //score must be updated before we reset the ball's position
+                   ballReset();
+               }
+            }
+            if(ballX < 0) {
+                if (ballY > paddle1Y && ballY < paddle1Y+PADDLE_HEIGHT)
+                {
+                    ballspeedX = -ballspeedX;
+                    var deltaY = ballY - (paddle1Y + PADDLE_HEIGHT/2);
+                    ballspeedY = deltaY * 0.35;
+                }
+               else{
+                   
+                 player2Score++;        //score must be changed before we reset the ball's position
+                   ballReset();
+               } 
+            
+            }
+            // for y direction movement
+            ballY = ballY + ballspeedY; 
+            if(ballY>canvas.height) {ballspeedY = -ballspeedY;}
+            if(ballY < 0) {ballspeedY = -ballspeedY;}
+        }
+        //creting a function for the circle using attributes for easier work
+        function colorCircle(centerX, centerY, radius, drawColor){
+            canvasContext.fillStyle = drawColor;
+            canvasContext.beginPath();
+            canvasContext.arc(centerX,centerY,radius,0,Math.PI*2, true);
+            canvasContext.fill();
+        } 
+        // all the elements inside the canvas is rendered from here.
+        function drawEverything() {
+            
+           //prints the analogy of the running code into the console
+            console.log(ballX);
+            //creation of the canvas element by rendering the above code
+            canvasContext.fillStyle = 'black';
+            canvasContext.fillRect(0,0,canvas.width,canvas.height);
+            //creating a fixed box from the code below
+            /*canvasContext.fillStyle = 'red';
+            canvasContext.fillRect(100,100,400,100);
+            //creating  a square/rectangle from the below code
+            canvasContext.fillStyle = 'green';
+            canvasContext.fillRect(ballX,100,100,100);
+            //calling draw circle function from above in -> X direction
+            colorCircle (ballX,350,10,'white');
+            //calling draw circle function from above in -> Y direction
+            colorCircle (100,ballY,10,'yellow');*/
+            //calling draw circle function (trial)
+            colorCircle (ballX,ballY,10,'white');
+            canvasContext.fillStyle = 'yellow';
+             canvasContext.fillRect(0,paddle1Y,PADDLE_THICKNESS,PADDLE_HEIGHT);
+            canvasContext.fillStyle = 'yellow';
+             canvasContext.fillRect(canvas.width-PADDLE_THICKNESS,paddle2Y,PADDLE_THICKNESS,PADDLE_HEIGHT);
+            
+            canvasContext.fillText(player1Score,100,300);
+            canvasContext.fillText(player2Score,canvas.width-100,300)
+        }
+    </script>    
+</head>
+<body>
+    <canvas id="gameCanvas" width="800px" height="600px"></canvas>
+    </body>
+</html>
